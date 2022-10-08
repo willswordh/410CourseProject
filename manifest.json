@@ -1,6 +1,6 @@
 {
-  "name": "Chubba chubba",
-    "description": "detect a URL change in a tab, and inject a script to the page!",
+  "name": "Query Suggestion Helper",
+    "description": "hi",
     "version": "1.0",
 
     "manifest_version": 3,
