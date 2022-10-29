@@ -15,14 +15,19 @@
 			await new Promise(r => setTimeout(r, 50))
 		}
 		const anchor_elements = Array.from(document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"))
+		const posts = []
 		if (anchor_elements.length > 0) {
-			// const search_result_urls = anchor_elements.map(element => {
-			// 	const url = element.href
-			// 	fetch(url).then(response => response.json()).then(data => console.log(data))
-			// 	return url
-			// })
-			// console.log(search_result_urls)
+			const search_results = anchor_elements.forEach(element => {
+				const url = element.href
+				const json_url = element.href.substring(0, url.length-2) + ".json"
+
+				fetch(json_url).then(response => response.json()).then(data => {
+					post_content = data[0]["data"]["children"][0]["data"]["selftext"]
+					posts.push(post_content)
+				})
+			})
 		}
+		console.log(posts)
 	}
 	//if (window.location.href.contains("https://www.reddit.com/r/Gymnastics/search/?q=testt&restrict_sr=1&sr_nsfw="))
 	//console.log(window.location.href)
