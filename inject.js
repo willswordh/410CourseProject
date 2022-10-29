@@ -1,4 +1,4 @@
-(function() {
+(async function() {
 	const re = /.*reddit.com\/(r\/.+\/)?search\/\?q=(.*)/
 	const matches = window.location.href.match(re)
 	if (matches && matches.length > 0) {
@@ -8,10 +8,20 @@
 		console.log(subreddit)
 		console.log(queryParameters.split("%20"))
 
+
+		while (document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE").length == 0) {
+			// hack to wait for page to be fully loaded in order to access search results
+			// note that changeInfo.status == "complete" does not work because of dynamic loading
+			await new Promise(r => setTimeout(r, 50))
+		}
 		const anchor_elements = Array.from(document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"))
 		if (anchor_elements.length > 0) {
-			const search_result_urls = anchor_elements.map(element => element.href)
-			console.log(search_result_urls)
+			// const search_result_urls = anchor_elements.map(element => {
+			// 	const url = element.href
+			// 	fetch(url).then(response => response.json()).then(data => console.log(data))
+			// 	return url
+			// })
+			// console.log(search_result_urls)
 		}
 	}
 	//if (window.location.href.contains("https://www.reddit.com/r/Gymnastics/search/?q=testt&restrict_sr=1&sr_nsfw="))
