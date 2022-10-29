@@ -8,7 +8,8 @@ function injectScriptToTab(tabId) {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
+  // need page to be fully loaded in order to access search results
+  if (changeInfo.status == 'complete' && tab.active) {
       injectScriptToTab(tabId)
 
   }

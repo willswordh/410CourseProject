@@ -1,12 +1,12 @@
 (function() {
 	const re = /.*reddit.com\/(r\/.+\/)?search\/\?q=(.*)/
 	const matches = window.location.href.match(re)
-	if (matches.length > 0) {
+	if (matches && matches.length > 0) {
 		const subreddit = matches[1] == null ? null : matches[1].split("/")[1]
 		const queryParameters = matches[2].split("&")[0]
 
-		// const temp = document.querySelectorAll("[data-click-id='body']")
-		// console.log(temp)
+		console.log(subreddit)
+		console.log(queryParameters.split("%20"))
 
 		const anchor_elements = Array.from(document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"))
 		if (anchor_elements.length > 0) {
