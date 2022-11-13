@@ -10,6 +10,5 @@ function injectScriptToTab(tabId) {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
       injectScriptToTab(tabId)
-
   }
 })
