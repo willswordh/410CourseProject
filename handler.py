@@ -39,10 +39,13 @@ class Processor:
 
 			# Masking every single noun of the sentence at a time for keyword probability analysis
 			for text, tag in pos_tagged_text:
-				if 'NN' in tag: # check if tag is NN, NNS, or NNP (i.e. noun)
+				if tag == 'NNS' or tag == 'NNP': # check if tag is NNS or NNP (i.e. noun)
 					input = sentence.replace(text, '[MASK]')
+					print('Input to model:', input)
 					output = self.model(input)
-					print(output)
+					print('First item of the output list:', output[0])
+
+		return ['dummy1', 'dummy2']
 
 	def read_urls(self, urls):
 		inputList = []
@@ -63,7 +66,7 @@ class Processor:
 				contents = soup('title') + soup('p')
 				inputList = inputList + [data.getText() for data in contents]
 		aggregatedInput = ' '.join(inputList)
-		sentences = aggregatedInput.split('\\.')
+		sentences = aggregatedInput.split('. ')
 		return sentences
 
 class RecommendationRequestHandler(BaseHTTPRequestHandler):
@@ -76,11 +79,9 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 
 	def _set_headers(self):
 		self.send_response(200)
-		self.send_header('Content-Type', 'text/html')
 		self.end_headers()
 
 	def do_POST(self):
-		self._set_headers()
 		content_len = int(self.headers.get('Content-Length'))
 		post_body = self.rfile.read(content_len)
 		print(post_body)
@@ -88,11 +89,15 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 		if 'urls' not in json_data:
 			self.wfile.write(bytes("Urls are not presented in the POST body.", "utf-8"))
 		print(json_data['urls'])
-		self.processor.process(json_data['urls'])
+		recommendation_words = self.processor.process(json_data['urls'])
+		self._set_headers()
+		self.send_header('Content-Type', 'application/json')
+		self.wfile.write(bytes(json.dumps(recommendation_words), "utf-8"))
 
 
 	def do_GET(self):
 		self._set_headers()
+		self.send_header('Content-Type', 'text/html')
 		self.wfile.write(bytes("<html><head><title>CS410 Project - Team Wang</title></head>", "utf-8"))
 		self.wfile.write(bytes("<p>Request path: %s</p>" % self.path, "utf-8"))
 		self.wfile.write(bytes("<body>", "utf-8"))

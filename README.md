@@ -18,6 +18,6 @@ Use curl to trigger localhost:
 ```
 curl --url     http://localhost:8080 \
      --header  'Content-Type: application/json' \
-     --data    "{\"urls\":[\"https://www.reddit.com\"]}" \
+     --data    "{\"urls\":[\"https://www.reddit.com/r/technews/comments/ypjr3o/amc_is_working_with_zoom_to_turn_some_theaters\"]}" \
      --verbose
 ```
