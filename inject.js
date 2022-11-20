@@ -15,17 +15,32 @@
 			await new Promise(r => setTimeout(r, 50))
 		}
 		const anchor_elements = Array.from(document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"))
-		const posts = []
+		const urls = []
 		if (anchor_elements.length > 0) {
 			const search_results = anchor_elements.forEach(element => {
 				const url = element.href
-				const json_url = element.href.substring(0, url.length-2) + ".json"
+				// const json_url = element.href.substring(0, url.length-2) + ".json"
 
-				fetch(json_url).then(response => response.json()).then(data => {
-					post_content = data[0]["data"]["children"][0]["data"]["selftext"]
-					posts.push(post_content)
-				})
+				// fetch(json_url).then(response => response.json()).then(data => {
+				//    post_content = data[0]["data"]["children"][0]["data"]["selftext"]
+				//	posts.push(post_content)
+				// })
+				urls.push(url)
 			})
+
+			console.log(JSON.stringify({'urls': urls}))
+
+			fetch('http://localhost:8080', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({'urls': urls})
+			})
+			.then(response => response.json())
+			.then(text => {
+			    console.log('hello')
+			    console.log(text)})
 
 
 			var div = document.createElement('label')

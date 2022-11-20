@@ -104,6 +104,14 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 		self.wfile.write(bytes("<p>GET operation is just a test. Please use POST </p>", "utf-8"))
 		self.wfile.write(bytes("</body></html>", "utf-8"))
 
+	def do_OPTIONS(self):
+		# for CORS
+		self.send_response(200, "ok")
+		self.send_header('Access-Control-Allow-Origin', '*')
+		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+		self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+		self.end_headers()
+
 if __name__ == "__main__": 
 	webServer = HTTPServer((HOST_NAME, PORT), RecommendationRequestHandler)
 	print("Server started http://%s:%s" % (HOST_NAME, PORT))
