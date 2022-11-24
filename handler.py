@@ -41,9 +41,8 @@ class Processor:
 			for text, tag in pos_tagged_text:
 				if tag == 'NNS' or tag == 'NNP': # check if tag is NNS or NNP (i.e. noun)
 					input = sentence.replace(text, '[MASK]')
-					print('Input to model:', input)
 					output = self.model(input)
-					print('First item of the output list:', output[0])
+					print('First probability of output:', output[0])
 
 		return ['dummy1', 'dummy2']
 
@@ -77,10 +76,6 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 		super().__init__(request, client_address, server)
 		
 
-	def _set_headers(self):
-		self.send_response(200)
-		self.end_headers()
-
 	def do_POST(self):
 		content_len = int(self.headers.get('Content-Length'))
 		post_body = self.rfile.read(content_len)
@@ -90,14 +85,17 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 			self.wfile.write(bytes("Urls are not presented in the POST body.", "utf-8"))
 		print(json_data['urls'])
 		recommendation_words = self.processor.process(json_data['urls'])
-		self._set_headers()
+
+		self.send_response(200)
 		self.send_header('Content-Type', 'application/json')
+		self.end_headers()
 		self.wfile.write(bytes(json.dumps(recommendation_words), "utf-8"))
 
 
 	def do_GET(self):
-		self._set_headers()
+		self.send_response(200)
 		self.send_header('Content-Type', 'text/html')
+		self.end_headers()
 		self.wfile.write(bytes("<html><head><title>CS410 Project - Team Wang</title></head>", "utf-8"))
 		self.wfile.write(bytes("<p>Request path: %s</p>" % self.path, "utf-8"))
 		self.wfile.write(bytes("<body>", "utf-8"))
