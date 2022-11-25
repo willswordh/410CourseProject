@@ -28,19 +28,27 @@
 				urls.push(url)
 			})
 
-			console.log(JSON.stringify({'urls': urls}))
+			console.log(JSON.stringify({'urls': urls.splice(0,1)}))
 
 			fetch('http://localhost:8080', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({'urls': urls})
+				body: JSON.stringify({'urls': urls.splice(0,1)})
 			})
-			.then(response => response.json())
+			.then((response) => {
+				if (response.ok) {
+				  return response.json();
+				}
+				throw new Error('Something went wrong');
+			})
 			.then(text => {
 			    console.log('hello')
 			    console.log(text)})
+			.catch((error) => {
+  console.log(error)
+});
 
 
 			var div = document.createElement('label')

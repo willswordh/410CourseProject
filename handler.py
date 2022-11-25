@@ -18,10 +18,10 @@ PORT = 8080
 
 
 # def calculateDocLM(inputList) {
-# 	aggregatedInput = ' '.join(inputList)
-# 	inputWithoutSpecialChar = re.sub('[^A-Za-z\space]','', aggregatedInput)
-# 	tokens = inputWithoutSpecialChar.split(' ')
-# 	wordDist = Counter(tokens)
+#   aggregatedInput = ' '.join(inputList)
+#   inputWithoutSpecialChar = re.sub('[^A-Za-z\space]','', aggregatedInput)
+#   tokens = inputWithoutSpecialChar.split(' ')
+#   wordDist = Counter(tokens)
 # }
 
 class Processor:
@@ -69,6 +69,7 @@ class Processor:
 		return sentences
 
 class RecommendationRequestHandler(BaseHTTPRequestHandler):
+	protocol_version = 'HTTP/1.1'
 
 	def __init__(self, request, client_address, server):
 		print("Initializing RecommendationRequestHandler.")
@@ -84,12 +85,17 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 		if 'urls' not in json_data:
 			self.wfile.write(bytes("Urls are not presented in the POST body.", "utf-8"))
 		print(json_data['urls'])
-		recommendation_words = self.processor.process(json_data['urls'])
+		recommendation_words = ['dummy1', 'dummy2']#self.processor.process(json_data['urls'])
+		content = bytes(json.dumps(recommendation_words), "utf-8")
 
 		self.send_response(200)
+		self.send_header("Access-Control-Allow-Origin","*")
+		self.send_header("Access-Control-Allow-Methods","*")
+		self.send_header("Access-Control-Allow-Headers","*")
 		self.send_header('Content-Type', 'application/json')
+		self.send_header("Content-Length", str(len(content)))
 		self.end_headers()
-		self.wfile.write(bytes(json.dumps(recommendation_words), "utf-8"))
+		self.wfile.write(content)
 
 
 	def do_GET(self):
@@ -104,10 +110,16 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 
 	def do_OPTIONS(self):
 		# for CORS
+		# self.send_response(200, "ok")
+		# self.send_header('Access-Control-Allow-Origin', '*')
+		# self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+		# self.send_header('Access-Control-Allow-Headers', 'Content-Type, Origin')
+		# self.end_headers()
+
 		self.send_response(200, "ok")
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-		self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+		self.send_header("Access-Control-Allow-Origin","*")
+		self.send_header("Access-Control-Allow-Methods","*")
+		self.send_header("Access-Control-Allow-Headers","*")
 		self.end_headers()
 
 if __name__ == "__main__": 
