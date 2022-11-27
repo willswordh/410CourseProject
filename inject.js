@@ -14,6 +14,18 @@
 			// note that changeInfo.status == "complete" does not work because of dynamic loading
 			await new Promise(r => setTimeout(r, 50))
 		}
+
+		const loading_div = document.createElement('label');
+		const div_id = "cs410-extension"
+		loading_div.id = div_id;
+		loading_div.appendChild(document.createTextNode('Loading keyword recommendations...'))
+
+		if (!document.getElementById(div_id)) {
+			document.getElementsByClassName("_1iqnOY2Y57wmetu8MAjiId")[0].append(loading_div)
+		} else {
+			document.getElementsByClassName("_1iqnOY2Y57wmetu8MAjiId")[0].replaceChild(loading_div, document.getElementById(div_id))
+		}
+
 		const anchor_elements = Array.from(document.getElementsByClassName("SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"))
 		const urls = []
 		if (anchor_elements.length > 0) {
@@ -43,20 +55,10 @@
 				}
 				throw new Error('Something went wrong');
 			})
-			.then(text => {
-			    console.log('hello')
-			    console.log(text)})
-			.catch((error) => {
-  console.log(error)
-});
-
-
-			var div = document.createElement('label')
-			var div_id = "cs410-extension"
-			div.id = div_id
-			if (!document.getElementById(div_id)) {
+			.then(results => {
+			    var div = document.createElement('label')
+				div.id = div_id
 				div.appendChild(document.createTextNode('You might also want to search for: '))
-				var results = ['hello', 'world']
 
 				var subreddit_query_string = subreddit ? '/r/'+subreddit : ""
 
@@ -70,10 +72,12 @@
 						div.appendChild(document.createTextNode(', '))
 					}
 				})
-				if (document.getElementsByClassName("_1iqnOY2Y57wmetu8MAjiId")) {
-					document.getElementsByClassName("_1iqnOY2Y57wmetu8MAjiId")[0].append(div)
-				}
-			}
+				document.getElementsByClassName("_1iqnOY2Y57wmetu8MAjiId")[0].replaceChild(div, document.getElementById(div_id))
+			})
+			.catch((error) => {
+			  console.log(error)
+			});
+
 		}
 	}
 })()
