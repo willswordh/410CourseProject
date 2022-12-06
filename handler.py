@@ -6,8 +6,10 @@ from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 
 from transformers import pipeline
+
 import nltk
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 
 from collections import Counter
 
@@ -16,6 +18,8 @@ import re
 # For POS tagging and lexical analysis
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
+# For filtering out stop words
+nltk.download('stopwords')
 
 # Server hosting
 HOST_NAME = 'localhost'
@@ -24,6 +28,9 @@ PORT = 8080
 # LM construction
 MAX_NUM_OF_LIKELIHOODS_CONSIDERED = 3
 NUM_OF_RECOMMENDATIONS = 5
+
+# STOP_WORDS
+STOP_WORDS = set(stopwords.words('english'))
 
 
 class Processor:
@@ -43,7 +50,9 @@ class Processor:
 		differences = {k: v - collection_LM.get(k, 0) for k, v in doc_LM.items()}
 		sorted_doc_LM_by_scores = sorted(differences.items(), key=lambda x:-x[1])
 		print(sorted_doc_LM_by_scores[:NUM_OF_RECOMMENDATIONS])
-		return list(word for word, prob in sorted_doc_LM_by_scores[:NUM_OF_RECOMMENDATIONS])
+		recommendation_list = list(word for word, prob in sorted_doc_LM_by_scores[:NUM_OF_RECOMMENDATIONS])
+		self.validate_result(recommendation_list, aggregated_input)
+		return recommendation_list
 
 	# Construct the collection language model by leveraging BERT fill mask functionality to approximate
 	# Input: A string including all documents
@@ -69,9 +78,10 @@ class Processor:
 					for i in range(min(len(mask_likelihoods), MAX_NUM_OF_LIKELIHOODS_CONSIDERED)):
 						likelihood = mask_likelihoods[i]
 
-						# check if the predicted token contains special characters
+						# check if the predicted token contains special characters or is a stop word
 						token_str = likelihood.get('token_str')
-						if re.match('^[a-zA-Z0-9]*$', token_str):
+						if re.match('^[a-zA-Z0-9]*$', token_str) and token_str not in STOP_WORDS:
+							token_str = token_str.lower()
 							collection_LM[token_str] = likelihood.get('score') + collection_LM.get(token_str, 0)
 							total_count = total_count + 1
 		return {k: v / total_count for k, v in collection_LM.items()}
@@ -84,10 +94,12 @@ class Processor:
 		words = word_tokenize(aggregated_input)
 
 		# POS tagging for lexical analysis
+		# pos_tagged_text is a list of word-tag tuples. e.g. [('He', 'NNS')] 
 		pos_tagged_text = nltk.pos_tag(words)
 
-		filtered = filter(lambda tuple: tuple[1] == 'NNS', pos_tagged_text)
-		all_nouns = [tuple[0] for tuple in list(filtered)]
+		# filter out non-noun words or stop words
+		filtered = filter(lambda tuple: tuple[1] == 'NNS' and tuple[1] not in STOP_WORDS, pos_tagged_text)
+		all_nouns = [tuple[0].lower() for tuple in list(filtered)]
 		word_dist = Counter(all_nouns)
 		
 		return {k: v / len(all_nouns) for k, v in word_dist.items()}
@@ -116,6 +128,20 @@ class Processor:
 		aggregated_input = ' '.join(input_list)
 		return aggregated_input
 
+	# Validate the correctness of the recommendated keywords 
+	# via topic mining using the candidate terms as the topics
+	# Input: A list of string; the recommended words
+	# Output: score
+	def validate_result(self, result_list, aggregated_input):
+		lower_cased_input = aggregated_input.lower()
+		scores = [(word, self.scoring_function(word, lower_cased_input)) for word in result_list]
+		for word, score in scores:
+			print('Score for recommended keyword', word, 'is', score)
+
+	# Given that the stop words have been filtered out, there's no need to consider 
+	# too frequent words or IDF weighting. We will just use TF as the metric for scoring.
+	def scoring_function(self, word, corpus):
+		return corpus.count(word)
 
 
 class RecommendationRequestHandler(BaseHTTPRequestHandler):
@@ -135,7 +161,7 @@ class RecommendationRequestHandler(BaseHTTPRequestHandler):
 		if 'urls' not in json_data:
 			self.wfile.write(bytes("Urls are not presented in the POST body.", "utf-8"))
 		print(json_data['urls'])
-		recommendation_words = ['dummy1', 'dummy2']#self.processor.process(json_data['urls'])
+		recommendation_words = self.processor.process(json_data['urls'])
 		content = bytes(json.dumps(recommendation_words), "utf-8")
 
 		self.send_response(200)
