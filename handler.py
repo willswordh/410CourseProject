@@ -13,6 +13,8 @@ from nltk.corpus import stopwords
 
 from collections import Counter
 
+import time
+
 import re
 
 # For POS tagging and lexical analysis
@@ -24,6 +26,10 @@ nltk.download('stopwords')
 # Server hosting
 HOST_NAME = 'localhost'
 PORT = 8080
+
+# URL fetching error handling
+REDDIT_ERROR_MESSAGE = 'reddit can\'t be reached'
+RETRY_TIMES = 3
 
 # LM construction
 MAX_NUM_OF_LIKELIHOODS_CONSIDERED = 3
@@ -112,19 +118,28 @@ class Processor:
 		# TODO: see if there are ways to batch read urls
 		for url in urls:
 			req = Request(url)
-			try:
-				response = urlopen(req)
-			except HTTPError as e:
-				print('The server couldn\'t fulfill the request.')
-				print('Error code: ', e.code)
-			except URLError as e:
-				print('We failed to reach a server.')
-				print('Reason: ', e.reason)
-			else:
-				html = response.read()
-				soup = BeautifulSoup(html, 'html.parser')
-				contents = soup('title') + soup('p')
-				input_list = input_list + [data.getText() for data in contents]
+			for retry_count in range(RETRY_TIMES):
+				try:
+					response = urlopen(req)
+				except HTTPError as e:
+					print('The server couldn\'t fulfill the request.')
+					print('Error code: ', e.code)
+				except URLError as e:
+					print('We failed to reach a server.')
+					print('Reason: ', e.reason)
+				else:
+					html = response.read()
+					soup = BeautifulSoup(html, 'html.parser')
+					contents = soup('title') + soup('p')
+
+					# check if retry is needed
+					if not any(REDDIT_ERROR_MESSAGE in data.getText() for data in contents):
+						input_list = input_list + [data.getText() for data in contents]
+						break
+					print('Reddit server side error. Retrying count:', retry_count)
+					# Exponential backoff
+					time.sleep(0.25 * (2 ** retry_count))
+
 		aggregated_input = ' '.join(input_list)
 		return aggregated_input
 
