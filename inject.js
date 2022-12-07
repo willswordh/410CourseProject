@@ -31,23 +31,16 @@
 		if (anchor_elements.length > 0) {
 			const search_results = anchor_elements.forEach(element => {
 				const url = element.href
-				// const json_url = element.href.substring(0, url.length-2) + ".json"
-
-				// fetch(json_url).then(response => response.json()).then(data => {
-				//    post_content = data[0]["data"]["children"][0]["data"]["selftext"]
-				//	posts.push(post_content)
-				// })
 				urls.push(url)
 			})
-
-			console.log(JSON.stringify({'urls': urls.splice(0,1)}))
 
 			fetch('http://localhost:8080', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({'urls': urls.splice(0,1)})
+				// use top 3 posts
+				body: JSON.stringify({'urls': urls.splice(0,3)})
 			})
 			.then((response) => {
 				if (response.ok) {
