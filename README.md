@@ -1,8 +1,6 @@
-# CS410 Group Project - Team Wang
+# CS410 Group Project 
 
-## Team Members
-- Daocheng Wang
-- Ziyue Wang
+
 
 ## Documentation
 - Documentation can be found in `documentation.pdf`
